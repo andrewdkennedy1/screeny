@@ -70,6 +70,14 @@ info "Launching renderer"
 python -m renderer.main &
 RENDER_PID=$!
 
+cleanup() {
+  info "Stopping..."
+  kill "$WEB_PID" "$RENDER_PID" 2>/dev/null || true
+  wait "$WEB_PID" "$RENDER_PID" 2>/dev/null || true
+}
+
+trap cleanup INT TERM
+
 info "Running. Web PID=$WEB_PID Renderer PID=$RENDER_PID"
 info "Open http://127.0.0.1:5000"
 wait $WEB_PID $RENDER_PID
