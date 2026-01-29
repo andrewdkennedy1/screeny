@@ -183,6 +183,7 @@ def render_loop(config: RendererConfig) -> None:
     image_id = None
     image_url = None
     image_bytes = None
+    image_cache: dict[str, bytes] = {}
 
     while True:
         for event in pygame.event.get():
@@ -199,7 +200,14 @@ def render_loop(config: RendererConfig) -> None:
             image_id = new_image_id
             if image_id:
                 image_url = resolve_image_url(config.server_url, image_id)
-                image_bytes = fetch_image_bytes(image_url) if image_url else None
+                if image_id in image_cache:
+                    image_bytes = image_cache[image_id]
+                else:
+                    image_bytes = fetch_image_bytes(image_url) if image_url else None
+                    if image_bytes:
+                        image_cache[image_id] = image_bytes
+                        if len(image_cache) > 10:
+                            image_cache.clear()
             else:
                 image_url = None
                 image_bytes = None
