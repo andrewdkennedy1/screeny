@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class AppConfig:
-    bind_host: str = os.getenv("BIND_HOST", "127.0.0.1")
+    bind_host: str = os.getenv("BIND_HOST", "0.0.0.0")
     bind_port: int = int(os.getenv("BIND_PORT", "5000"))
     data_dir: str = os.getenv("DATA_DIR", "data")
     db_path: str = os.getenv("DB_PATH", os.path.join("data", "screeny.db"))

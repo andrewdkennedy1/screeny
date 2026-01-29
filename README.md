@@ -31,7 +31,7 @@ python -m hdmi_control.app
 python -m renderer.main
 ```
 
-Open http://127.0.0.1:5000
+Open http://<pi-ip>:5000
 
 ## Notes
 - Renderer uses `pygame` if available. If not installed, it runs in headless mode and logs state updates.
