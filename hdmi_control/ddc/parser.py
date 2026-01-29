@@ -31,7 +31,9 @@ def parse_detect(output: str) -> list[dict]:
         if line.startswith("Display"):
             if current:
                 displays.append(current)
-            current = {"raw": []}
+            parts = line.split()
+            index = parts[1] if len(parts) > 1 else None
+            current = {"raw": [], "index": index}
         if current is not None:
             current["raw"].append(line)
             if line.startswith("I2C bus:"):
@@ -45,6 +47,8 @@ def parse_detect(output: str) -> list[dict]:
                 current["model"] = line.split(":", 1)[1].strip()
             if line.startswith("Serial number:"):
                 current["serial"] = line.split(":", 1)[1].strip()
+            if line.startswith("DRM connector:"):
+                current["connector"] = line.split(":", 1)[1].strip()
     if current:
         displays.append(current)
     return displays

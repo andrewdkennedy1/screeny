@@ -15,6 +15,8 @@ const imageList = document.getElementById("image-list");
 const mode = document.getElementById("mode");
 const scale = document.getElementById("scale");
 const scaleVal = document.getElementById("scale-val");
+const outputSelect = document.getElementById("output-select");
+const outputRefresh = document.getElementById("output-refresh");
 const debugRefresh = document.getElementById("debug-refresh");
 const debugOutput = document.getElementById("debug-output");
 const debugWake = document.getElementById("debug-wake");
@@ -123,6 +125,41 @@ async function refreshImages() {
   });
 }
 
+async function refreshOutputs() {
+  if (!outputSelect) return;
+  const res = await fetch("/api/ddc/outputs");
+  const data = await res.json();
+  outputSelect.innerHTML = "";
+  const auto = document.createElement("option");
+  auto.value = "";
+  auto.textContent = "Auto (first detected)";
+  outputSelect.appendChild(auto);
+  const connectors = data.connectors || [];
+  connectors.forEach((conn) => {
+    const opt = document.createElement("option");
+    opt.value = conn.name;
+    opt.textContent = `${conn.name} (${conn.status})`;
+    outputSelect.appendChild(opt);
+  });
+  const pref = data.preference || {};
+  if (pref.connector) outputSelect.value = pref.connector;
+}
+
+if (outputRefresh) {
+  outputRefresh.addEventListener("click", refreshOutputs);
+}
+
+if (outputSelect) {
+  outputSelect.addEventListener("change", async () => {
+    const connector = outputSelect.value || null;
+    await fetch("/api/ddc/select", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ connector }),
+    });
+  });
+}
+
 socket.on("state.snapshot", (payload) => {
   state = payload.state;
   if (!state) return;
@@ -144,6 +181,7 @@ socket.on("state.snapshot", (payload) => {
 
 socket.on("connect", () => {
   refreshImages();
+  refreshOutputs();
 });
 
 socket.on("ddc.updated", (payload) => {

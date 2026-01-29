@@ -17,6 +17,7 @@ from .sleep import apply_sleep_prevention
 from .images import add_image, list_images, delete_image, get_image_path
 from .profiles import list_profiles, create_profile, update_profile, delete_profile as delete_profile_db, set_default_profile, get_profile, load_default_or_last
 from .app_state import get_state_value, set_state_value
+from .drm import list_connectors
 
 
 socketio = SocketIO(async_mode="threading", cors_allowed_origins=[])
@@ -50,6 +51,11 @@ def create_app() -> Flask:
     else:
         state.activeProfileId = load_default_or_last()
 
+    selected_output = get_state_value("ddc_output")
+    if selected_output and "value" in selected_output:
+        pref = selected_output["value"]
+        ddc_controller.set_preference(pref.get("connector"), pref.get("bus"), pref.get("display_index"))
+
     socketio.init_app(app)
     ddc_controller.set_on_update(lambda: _ddc_updated())
 
@@ -79,6 +85,26 @@ def create_app() -> Flask:
     @app.route("/api/ddc/status")
     def ddc_status():
         return jsonify(state.ddc.__dict__)
+
+    @app.route("/api/ddc/outputs")
+    def ddc_outputs():
+        return jsonify({
+            "connectors": list_connectors(),
+            "ddc_displays": state.ddc.display,
+            "preference": ddc_controller.get_preference(),
+        })
+
+    @app.route("/api/ddc/select", methods=["POST"])
+    def ddc_select():
+        payload = request.get_json(force=True)
+        connector = payload.get("connector")
+        bus = payload.get("bus")
+        display_index = payload.get("display_index")
+        ddc_controller.set_preference(connector, bus, display_index)
+        set_state_value("ddc_output", {"value": {"connector": connector, "bus": bus, "display_index": display_index}})
+        ddc_controller.rescan()
+        ddc_controller.wake_display()
+        return jsonify({"ok": True, "ddc": state.ddc.__dict__})
 
     @app.route("/api/ddc/rescan", methods=["POST"])
     def ddc_rescan():

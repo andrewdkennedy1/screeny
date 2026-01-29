@@ -28,6 +28,11 @@ class DdcController:
         self._stop = False
         self._thread = threading.Thread(target=self._worker, daemon=True)
         self._target_args: list[str] = []
+        self._preferred: dict[str, str | None] = {
+            "connector": None,
+            "bus": None,
+            "display_index": None,
+        }
 
     def set_on_update(self, on_update: Callable[[], None]) -> None:
         self.on_update = on_update
@@ -52,7 +57,7 @@ class DdcController:
             if not displays:
                 self._set_error("No displays detected")
                 return
-            display = displays[0]
+            display = self._select_display(displays)
             self._with_state_lock(lambda: setattr(self.state, "display", display))
             self._select_target(display)
             bright = None
@@ -108,6 +113,29 @@ class DdcController:
             self._target_args = ["--bus", target.split(":", 1)[1]]
         else:
             self._target_args = []
+
+    def _select_display(self, displays: list[dict]) -> dict:
+        if self._preferred["bus"]:
+            for display in displays:
+                if display.get("bus") == self._preferred["bus"]:
+                    return display
+        if self._preferred["connector"]:
+            for display in displays:
+                if display.get("connector") == self._preferred["connector"]:
+                    return display
+        if self._preferred["display_index"]:
+            for display in displays:
+                if display.get("index") == self._preferred["display_index"]:
+                    return display
+        return displays[0]
+
+    def set_preference(self, connector: str | None, bus: str | None, display_index: str | None) -> None:
+        self._preferred["connector"] = connector
+        self._preferred["bus"] = bus
+        self._preferred["display_index"] = display_index
+
+    def get_preference(self) -> dict:
+        return dict(self._preferred)
 
     def get_target_args(self) -> list[str]:
         return list(self._target_args)
