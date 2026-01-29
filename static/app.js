@@ -17,6 +17,8 @@ const scale = document.getElementById("scale");
 const scaleVal = document.getElementById("scale-val");
 const debugRefresh = document.getElementById("debug-refresh");
 const debugOutput = document.getElementById("debug-output");
+const debugWake = document.getElementById("debug-wake");
+const debugCopy = document.getElementById("debug-copy");
 const tabButtons = document.querySelectorAll(".tab-btn");
 const tabs = document.querySelectorAll(".tab");
 
@@ -90,6 +92,20 @@ async function refreshDebug() {
 
 if (debugRefresh) {
   debugRefresh.addEventListener("click", refreshDebug);
+}
+
+if (debugWake) {
+  debugWake.addEventListener("click", async () => {
+    await fetch("/api/ddc/wake", { method: "POST" });
+    refreshDebug();
+  });
+}
+
+if (debugCopy) {
+  debugCopy.addEventListener("click", async () => {
+    if (!debugOutput) return;
+    await navigator.clipboard.writeText(debugOutput.textContent || "");
+  });
 }
 
 async function refreshImages() {

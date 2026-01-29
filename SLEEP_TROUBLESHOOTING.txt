@@ -1,0 +1,12 @@
+If your screen sleeps or won't wake, make sure HDMI and DPMS settings are not blanking the display.
+Recommended Pi OS settings:
+
+1) Disable console blanking (KMS/console):
+   sudo sed -i 's/$/ consoleblank=0/' /boot/firmware/cmdline.txt
+
+2) Disable DPMS for X11 (run once in a session):
+   xset s off
+   xset -dpms
+   xset s noblank
+
+You can also use the Debug tab -> Wake Display to send VCP D6 power on.

@@ -101,7 +101,14 @@ def create_app() -> Flask:
             "capabilities": util.run_raw(["capabilities"] + target_args, timeout_ms=CONFIG.ddc_timeout_ms * 2),
             "getvcp_10": util.run_raw(["getvcp", "10", "--brief"] + target_args),
             "getvcp_12": util.run_raw(["getvcp", "12", "--brief"] + target_args),
+            "getvcp_D6": util.run_raw(["getvcp", "D6", "--brief"] + target_args),
+            "getvcp_60": util.run_raw(["getvcp", "60", "--brief"] + target_args),
         })
+
+    @app.route("/api/ddc/wake", methods=["POST"])
+    def ddc_wake():
+        ddc_controller.wake_display()
+        return jsonify({"ok": True})
 
     @app.route("/api/ddc/values", methods=["PATCH"])
     def ddc_set_values():
