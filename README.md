@@ -10,6 +10,11 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### System packages (Pi OS)
+```bash
+sudo apt install -y libmagic1 python3-pygame
+```
+
 ### DDC/CI permissions
 - Ensure `i2c-dev` is loaded: `sudo modprobe i2c-dev`
 - Either:
