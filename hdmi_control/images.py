@@ -4,7 +4,7 @@ import magic
 from io import BytesIO
 from datetime import datetime
 from PIL import Image
-from ulid import ULID
+import ulid
 
 from .config import CONFIG
 from .db import db_conn
@@ -35,7 +35,7 @@ def add_image(file_storage) -> dict:
         raise ValueError("Invalid image type")
     image = Image.open(BytesIO(raw))
     image.load()
-    image_id = str(ULID())
+    image_id = str(ulid.new())
     ext = os.path.splitext(file_storage.filename or "")[1] or ".img"
     storage_path = os.path.join(IMAGE_DIR, f"{image_id}{ext}")
     with open(storage_path, "wb") as f:

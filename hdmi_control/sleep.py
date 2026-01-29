@@ -18,6 +18,8 @@ def apply_sleep_prevention() -> SleepStatus:
         ["xset", "s", "off"],
         ["xset", "-dpms"],
         ["xset", "s", "noblank"],
+        ["xset", "s", "reset"],
+        ["xset", "dpms", "force", "on"],
     ]
     outputs = []
     for cmd in cmds:
@@ -30,6 +32,17 @@ def apply_sleep_prevention() -> SleepStatus:
             try:
                 result = subprocess.run(
                     ["setterm", "-blank", "0", "-powerdown", "0", "-powersave", "off"],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                )
+                if result.stdout:
+                    outputs.append(result.stdout.strip())
+            except Exception:
+                pass
+            try:
+                result = subprocess.run(
+                    ["vcgencmd", "display_power", "1"],
                     capture_output=True,
                     text=True,
                     check=True,

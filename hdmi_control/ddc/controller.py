@@ -59,15 +59,19 @@ class DdcController:
             contrast = None
             ms_b = 0
             ms_c = 0
+            bright_err = None
+            contrast_err = None
             try:
                 bright, ms_b = self.ddcutil.get_vcp("10", self._target_args)
                 self._with_state_lock(lambda: self._set_supported("brightness", bright.cur is not None))
             except DdcUtilError:
+                bright_err = "Brightness unsupported"
                 self._with_state_lock(lambda: self._set_supported("brightness", False))
             try:
                 contrast, ms_c = self.ddcutil.get_vcp("12", self._target_args)
                 self._with_state_lock(lambda: self._set_supported("contrast", contrast.cur is not None))
             except DdcUtilError:
+                contrast_err = "Contrast unsupported"
                 self._with_state_lock(lambda: self._set_supported("contrast", False))
             def _apply_scan():
                 self.state.supported["vcp"] = [
@@ -80,7 +84,10 @@ class DdcController:
                 if contrast:
                     self.state.values["contrast"] = {"cur": contrast.cur, "max": contrast.max}
                 self.state.status = "ok" if (self.state.supported["brightness"] or self.state.supported["contrast"]) else "degraded"
-                self.state.lastError = None if self.state.status == "ok" else "VCP codes unsupported"
+                if self.state.status == "ok":
+                    self.state.lastError = None
+                else:
+                    self.state.lastError = contrast_err or bright_err or "VCP codes unsupported"
                 self.state.lastOkAt = now_iso()
                 self.state.lastCommandMs = max(ms_b, ms_c, ms)
             self._with_state_lock(_apply_scan)
