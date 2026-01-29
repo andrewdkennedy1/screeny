@@ -1,3 +1,7 @@
+if (typeof io === "undefined") {
+  alert("Socket.IO client failed to load. Hard refresh and check /static/socket.io.min.js");
+}
+
 const socket = io();
 
 const brightness = document.getElementById("brightness");
