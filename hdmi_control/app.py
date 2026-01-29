@@ -284,5 +284,5 @@ def _ddc_updated() -> None:
 
 if __name__ == "__main__":
     app = create_app()
-    socketio.run(app, host=CONFIG.bind_host, port=CONFIG.bind_port)
+    socketio.run(app, host=CONFIG.bind_host, port=CONFIG.bind_port, allow_unsafe_werkzeug=True)
 
