@@ -82,7 +82,7 @@ python -m hdmi_control.app &
 WEB_PID=$!
 
 info "Launching renderer"
-python -m renderer.main &
+DISPLAY=:0 XAUTHORITY="$HOME/.Xauthority" python -m renderer.main &
 RENDER_PID=$!
 
 cleanup() {
