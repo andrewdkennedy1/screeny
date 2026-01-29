@@ -112,6 +112,16 @@ class DdcController:
     def get_target_args(self) -> list[str]:
         return list(self._target_args)
 
+    def wake_display(self) -> None:
+        try:
+            duration_ms = self.ddcutil.set_vcp("D6", 1, self._target_args)
+            def _apply_wake():
+                self.state.lastOkAt = now_iso()
+                self.state.lastCommandMs = duration_ms
+            self._with_state_lock(_apply_wake)
+        except DdcUtilError:
+            pass
+
     def _enqueue(self, code: str, value: int) -> None:
         with self._lock:
             self._pending[code] = value

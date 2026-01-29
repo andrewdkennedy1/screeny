@@ -10,12 +10,16 @@ class VcpValue:
 
 
 _VCP_RE = re.compile(r"current value = (\d+), max value = (\d+)")
+_VCP_BRIEF_RE = re.compile(r"VCP\s+([0-9A-Fa-f]{2})\s+[A-Z]\s+(\d+)\s+(\d+)")
 
 
 def parse_getvcp(output: str, code: str) -> VcpValue:
     match = _VCP_RE.search(output)
     if not match:
-        return VcpValue(code=code, cur=None, max=None)
+        match = _VCP_BRIEF_RE.search(output)
+        if not match:
+            return VcpValue(code=code, cur=None, max=None)
+        return VcpValue(code=code, cur=int(match.group(2)), max=int(match.group(3)))
     return VcpValue(code=code, cur=int(match.group(1)), max=int(match.group(2)))
 
 

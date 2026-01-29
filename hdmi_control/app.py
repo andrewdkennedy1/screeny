@@ -37,6 +37,7 @@ def create_app() -> Flask:
 
     ddc_controller.start()
     ddc_controller.rescan()
+    ddc_controller.wake_display()
 
     if CONFIG.disable_dpms:
         app.sleep_status = apply_sleep_prevention()
@@ -82,6 +83,7 @@ def create_app() -> Flask:
     @app.route("/api/ddc/rescan", methods=["POST"])
     def ddc_rescan():
         ddc_controller.rescan()
+        ddc_controller.wake_display()
         return jsonify({"ok": True, "ddc": state.ddc.__dict__})
 
     @app.route("/api/ddc/values")
