@@ -5,7 +5,7 @@ This project implements a Raspberry Pi?hosted Flask app that drives a fullscreen
 ## Quick Start (Pi OS)
 
 ```bash
-python3 -m venv .venv
+python3 -m venv --system-site-packages .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```

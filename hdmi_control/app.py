@@ -17,7 +17,7 @@ from .profiles import list_profiles, create_profile, update_profile, delete_prof
 from .app_state import get_state_value, set_state_value
 
 
-socketio = SocketIO(async_mode="eventlet", cors_allowed_origins=[])
+socketio = SocketIO(async_mode="threading", cors_allowed_origins=[])
 state_lock = Lock()
 state = SystemState()
 

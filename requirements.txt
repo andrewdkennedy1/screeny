@@ -1,8 +1,8 @@
 Flask==3.0.3
 Flask-SocketIO==5.3.6
-eventlet==0.36.1
 python-socketio==5.11.4
 python-engineio==4.9.1
 Pillow==10.4.0
 ulid-py==1.1.0
 python-magic==0.4.27
+requests==2.32.3

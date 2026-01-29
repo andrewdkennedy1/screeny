@@ -40,7 +40,7 @@ sudo mkdir -p /opt/screeny/data
 sudo chown -R "$USER":"$USER" /opt/screeny
 
 info "Setting up virtualenv"
-python3 -m venv "$VENV_DIR"
+python3 -m venv --system-site-packages "$VENV_DIR"
 # shellcheck disable=SC1091
 source "$VENV_DIR/bin/activate"
 python -m pip install --upgrade pip
