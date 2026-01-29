@@ -1,0 +1,13 @@
+[Unit]
+Description=Screeny HDMI Control Web
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/screeny/hdmi-control.env
+ExecStart=/usr/bin/python3 -m hdmi_control.app
+WorkingDirectory=/opt/screeny
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

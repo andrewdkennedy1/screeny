@@ -1,0 +1,13 @@
+[Unit]
+Description=Screeny HDMI Renderer
+After=graphical.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/screeny/hdmi-control.env
+ExecStart=/usr/bin/python3 -m renderer.main
+WorkingDirectory=/opt/screeny
+Restart=on-failure
+
+[Install]
+WantedBy=graphical.target

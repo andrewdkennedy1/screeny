@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Screeny</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Screeny</h1>
+      <div class="status" id="ddc-status">DDC: ?</div>
+    </header>
+
+    <section class="panel">
+      <h2>Hardware (DDC/CI)</h2>
+      <div class="row">
+        <label>Brightness</label>
+        <input id="brightness" type="range" min="0" max="100" value="50" />
+        <span id="brightness-val">50</span>
+      </div>
+      <div class="row">
+        <label>Contrast</label>
+        <input id="contrast" type="range" min="0" max="100" value="50" />
+        <span id="contrast-val">50</span>
+      </div>
+      <button id="rescan">Rescan DDC</button>
+    </section>
+
+    <section class="panel">
+      <h2>Image</h2>
+      <input type="file" id="upload" />
+      <div id="image-list" class="image-list"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Render</h2>
+      <div class="row">
+        <label>Mode</label>
+        <select id="mode">
+          <option value="fit">Fit</option>
+          <option value="fill">Fill</option>
+          <option value="stretch">Stretch</option>
+          <option value="one_to_one">1:1</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Scale</label>
+        <input id="scale" type="range" min="0.1" max="3" step="0.1" value="1" />
+        <span id="scale-val">1.0</span>
+      </div>
+    </section>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

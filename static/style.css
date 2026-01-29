@@ -1,0 +1,74 @@
+body {
+  margin: 0;
+  font-family: "Fira Sans", "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #1b2330, #0b0f15);
+  color: #e8edf2;
+}
+
+.app {
+  max-width: 900px;
+  margin: 24px auto;
+  padding: 24px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.panel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 120px 1fr 60px;
+  gap: 12px;
+  align-items: center;
+  margin: 8px 0;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.image-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.image-item {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.image-item img {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+.status {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
