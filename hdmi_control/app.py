@@ -5,6 +5,7 @@ from threading import Lock
 from flask import Flask, jsonify, request, send_file, render_template
 from io import BytesIO
 from PIL import Image
+from pathlib import Path
 from flask_socketio import SocketIO, emit
 
 from .config import CONFIG
@@ -26,7 +27,8 @@ ddc_controller = DdcController(state.ddc, lambda: state.bump())
 
 
 def create_app() -> Flask:
-    app = Flask(__name__)
+    root = Path(__file__).resolve().parents[1]
+    app = Flask(__name__, template_folder=str(root / "templates"), static_folder=str(root / "static"))
     app.config["MAX_CONTENT_LENGTH"] = CONFIG.upload_max_mb * 1024 * 1024
 
     init_db()
