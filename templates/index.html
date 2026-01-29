@@ -13,7 +13,12 @@
       <div class="status" id="ddc-status">DDC: ?</div>
     </header>
 
-    <section class="panel">
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="controls">Controls</button>
+      <button class="tab-btn" data-tab="debug">Debug</button>
+    </nav>
+
+    <section class="panel tab" data-tab="controls">
       <h2>Hardware (DDC/CI)</h2>
       <div class="row">
         <label>Brightness</label>
@@ -28,13 +33,13 @@
       <button id="rescan">Rescan DDC</button>
     </section>
 
-    <section class="panel">
+    <section class="panel tab" data-tab="controls">
       <h2>Image</h2>
       <input type="file" id="upload" />
       <div id="image-list" class="image-list"></div>
     </section>
 
-    <section class="panel">
+    <section class="panel tab" data-tab="controls">
       <h2>Render</h2>
       <div class="row">
         <label>Mode</label>
@@ -51,6 +56,12 @@
         <input id="scale" type="range" min="0.1" max="3" step="0.1" value="1" />
         <span id="scale-val">1.0</span>
       </div>
+    </section>
+
+    <section class="panel tab hidden" data-tab="debug">
+      <h2>DDC Debug</h2>
+      <button id="debug-refresh">Refresh Debug</button>
+      <pre id="debug-output" class="debug-output">Press refresh to load DDC details.</pre>
     </section>
   </div>
 

@@ -12,6 +12,7 @@ from .config import CONFIG
 from .db import init_db
 from .state import SystemState
 from .ddc.controller import DdcController
+from .ddc.ddcutil import DdcUtil
 from .sleep import apply_sleep_prevention
 from .images import add_image, list_images, delete_image, get_image_path
 from .profiles import list_profiles, create_profile, update_profile, delete_profile as delete_profile_db, set_default_profile, get_profile, load_default_or_last
@@ -86,6 +87,19 @@ def create_app() -> Flask:
     @app.route("/api/ddc/values")
     def ddc_values():
         return jsonify(state.ddc.values)
+
+    @app.route("/api/ddc/debug")
+    def ddc_debug():
+        util = DdcUtil()
+        target_args = ddc_controller.get_target_args()
+        return jsonify({
+            "display": state.ddc.display,
+            "target_args": target_args,
+            "detect": util.run_raw(["detect", "--brief"]),
+            "capabilities": util.run_raw(["capabilities"] + target_args, timeout_ms=CONFIG.ddc_timeout_ms * 2),
+            "getvcp_10": util.run_raw(["getvcp", "10", "--brief"] + target_args),
+            "getvcp_12": util.run_raw(["getvcp", "12", "--brief"] + target_args),
+        })
 
     @app.route("/api/ddc/values", methods=["PATCH"])
     def ddc_set_values():

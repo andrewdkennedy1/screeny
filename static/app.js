@@ -15,6 +15,10 @@ const imageList = document.getElementById("image-list");
 const mode = document.getElementById("mode");
 const scale = document.getElementById("scale");
 const scaleVal = document.getElementById("scale-val");
+const debugRefresh = document.getElementById("debug-refresh");
+const debugOutput = document.getElementById("debug-output");
+const tabButtons = document.querySelectorAll(".tab-btn");
+const tabs = document.querySelectorAll(".tab");
 
 let state = null;
 let ddcSupports = { brightness: true, contrast: true };
@@ -28,6 +32,17 @@ function debounce(fn, wait) {
 }
 
 const sendDdc = debounce((payload) => socket.emit("ddc.set", payload), 50);
+
+tabButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    tabButtons.forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    const name = btn.dataset.tab;
+    tabs.forEach((tab) => {
+      tab.classList.toggle("hidden", tab.dataset.tab !== name);
+    });
+  });
+});
 
 brightness.addEventListener("input", (e) => {
   brightnessVal.textContent = e.target.value;
@@ -60,6 +75,22 @@ upload.addEventListener("change", async (e) => {
   await fetch("/api/images", { method: "POST", body: form });
   await refreshImages();
 });
+
+async function refreshDebug() {
+  if (!debugOutput) return;
+  debugOutput.textContent = "Loading...";
+  try {
+    const res = await fetch("/api/ddc/debug");
+    const data = await res.json();
+    debugOutput.textContent = JSON.stringify(data, null, 2);
+  } catch (err) {
+    debugOutput.textContent = String(err);
+  }
+}
+
+if (debugRefresh) {
+  debugRefresh.addEventListener("click", refreshDebug);
+}
 
 async function refreshImages() {
   const res = await fetch("/api/images");

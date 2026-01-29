@@ -109,6 +109,9 @@ class DdcController:
         else:
             self._target_args = []
 
+    def get_target_args(self) -> list[str]:
+        return list(self._target_args)
+
     def _enqueue(self, code: str, value: int) -> None:
         with self._lock:
             self._pending[code] = value

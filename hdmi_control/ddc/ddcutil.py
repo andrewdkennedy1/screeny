@@ -25,6 +25,29 @@ class DdcUtil:
             raise DdcUtilError(result.stderr.strip() or result.stdout.strip() or "ddcutil error")
         return result.stdout.strip(), duration_ms
 
+    def run_raw(self, args: list[str], timeout_ms: int | None = None) -> dict:
+        timeout = (timeout_ms or CONFIG.ddc_timeout_ms) / 1000.0
+        cmd = [self.path] + args
+        try:
+            start = time.perf_counter()
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+            duration_ms = int((time.perf_counter() - start) * 1000)
+            return {
+                "cmd": " ".join(cmd),
+                "returncode": result.returncode,
+                "stdout": result.stdout.strip(),
+                "stderr": result.stderr.strip(),
+                "duration_ms": duration_ms,
+            }
+        except subprocess.TimeoutExpired as exc:
+            return {
+                "cmd": " ".join(cmd),
+                "returncode": -1,
+                "stdout": "",
+                "stderr": f"timeout after {timeout_ms}ms",
+                "duration_ms": int((time.perf_counter() - start) * 1000),
+            }
+
     def detect(self) -> tuple[list[dict], int]:
         out, ms = self._run(["detect", "--brief"], timeout_ms=CONFIG.ddc_timeout_ms)
         return parse_detect(out), ms
