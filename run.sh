@@ -62,16 +62,20 @@ fi
 info "Starting services (web + renderer)"
 export $(grep -v '^#' "$ENV_FILE" | xargs -d '\n')
 
-info "Installing desktop autostart for renderer (Option A)"
-AUTOSTART_DIR="$HOME/.config/autostart"
-mkdir -p "$AUTOSTART_DIR"
-cat > "$AUTOSTART_DIR/screeny.desktop" <<EOF
+if [[ "${SCREENY_AUTOSTART:-0}" == "1" ]]; then
+  info "Installing desktop autostart for renderer (Option A)"
+  AUTOSTART_DIR="$HOME/.config/autostart"
+  mkdir -p "$AUTOSTART_DIR"
+  cat > "$AUTOSTART_DIR/screeny.desktop" <<EOF
 [Desktop Entry]
 Type=Application
 Name=Screeny Renderer
 Exec=$VENV_DIR/bin/python -m renderer.main
 X-GNOME-Autostart-enabled=true
 EOF
+else
+  info "Skipping autostart (set SCREENY_AUTOSTART=1 to enable)"
+fi
 
 info "Launching web API"
 python -m hdmi_control.app &

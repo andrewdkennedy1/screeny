@@ -31,6 +31,16 @@ python -m hdmi_control.app
 python -m renderer.main
 ```
 
+To launch the renderer inside the active desktop session from the console, set DISPLAY and XAUTHORITY:
+```bash
+DISPLAY=:0 XAUTHORITY=/home/pi/.Xauthority python -m renderer.main
+```
+
+Optional autostart:
+```bash
+SCREENY_AUTOSTART=1 ./run.sh
+```
+
 Open http://<pi-ip>:5000
 
 ## Notes
