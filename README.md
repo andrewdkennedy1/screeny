@@ -15,6 +15,9 @@ pip install -r requirements.txt
 sudo apt install -y libmagic1 python3-pygame
 ```
 
+### pygame note
+`pygame` is installed via apt on Raspberry Pi OS. It is intentionally not pinned in `requirements.txt` to avoid building SDL wheels inside the virtualenv. The renderer will run headless if `pygame` is missing.
+
 ### DDC/CI permissions
 - Ensure `i2c-dev` is loaded: `sudo modprobe i2c-dev`
 - Either:
