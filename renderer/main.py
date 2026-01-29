@@ -1,3 +1,4 @@
+import io
 import json
 import os
 import threading
@@ -25,12 +26,21 @@ def fetch_json(url: str) -> dict:
         return json.loads(resp.read().decode("utf-8"))
 
 
-def resolve_image_path(server_url: str, image_id: str) -> str | None:
+def resolve_image_url(server_url: str, image_id: str) -> str | None:
     data = fetch_json(f"{server_url}/api/images")
     for item in data:
         if item["id"] == image_id:
-            return item["storage_path"]
+            return f"{server_url}/api/images/{image_id}/file"
     return None
+
+
+def fetch_image_bytes(url: str) -> bytes | None:
+    import urllib.request
+    try:
+        with urllib.request.urlopen(url, timeout=2) as resp:
+            return resp.read()
+    except Exception:
+        return None
 
 
 def apply_color(image: Image.Image, color: dict) -> Image.Image:
@@ -171,7 +181,8 @@ def render_loop(config: RendererConfig) -> None:
     clock = pygame.time.Clock()
 
     image_id = None
-    image_path = None
+    image_url = None
+    image_bytes = None
 
     while True:
         for event in pygame.event.get():
@@ -187,13 +198,15 @@ def render_loop(config: RendererConfig) -> None:
         if new_image_id != image_id:
             image_id = new_image_id
             if image_id:
-                image_path = resolve_image_path(config.server_url, image_id)
+                image_url = resolve_image_url(config.server_url, image_id)
+                image_bytes = fetch_image_bytes(image_url) if image_url else None
             else:
-                image_path = None
+                image_url = None
+                image_bytes = None
 
         screen.fill((0, 0, 0))
-        if image_path and os.path.exists(image_path):
-            image = Image.open(image_path).convert("RGB")
+        if image_bytes:
+            image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
             render = state.get("render", {})
             transform = render.get("transform", {})
             color = render.get("color", {})

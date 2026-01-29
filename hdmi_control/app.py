@@ -23,7 +23,7 @@ state_lock = Lock()
 state = SystemState()
 
 
-ddc_controller = DdcController(state.ddc, lambda: state.bump())
+ddc_controller = DdcController(state.ddc, lambda: state.bump(), state_lock)
 
 
 def create_app() -> Flask:
@@ -98,14 +98,14 @@ def create_app() -> Flask:
 
     @app.route("/api/images", methods=["GET"])
     def images_list():
-        return jsonify(list_images())
+        return jsonify(_sanitize_images(list_images()))
 
     @app.route("/api/images", methods=["POST"])
     def images_upload():
         if "file" not in request.files:
             return jsonify({"error": "file missing"}), 400
         image = add_image(request.files["file"])
-        return jsonify(image)
+        return jsonify(_sanitize_images([image])[0])
 
     @app.route("/api/images/<image_id>", methods=["DELETE"])
     def images_delete(image_id: str):
@@ -120,12 +120,19 @@ def create_app() -> Flask:
         path = get_image_path(image_id)
         if not path or not os.path.exists(path):
             return jsonify({"error": "not found"}), 404
-        image = Image.open(path)
-        image.thumbnail((256, 256))
-        buf = BytesIO()
-        image.save(buf, format="JPEG")
+        with Image.open(path) as image:
+            image.thumbnail((256, 256))
+            buf = BytesIO()
+            image.save(buf, format="JPEG")
         buf.seek(0)
         return send_file(buf, mimetype="image/jpeg")
+
+    @app.route("/api/images/<image_id>/file")
+    def images_file(image_id: str):
+        path = get_image_path(image_id)
+        if not path or not os.path.exists(path):
+            return jsonify({"error": "not found"}), 404
+        return send_file(path)
 
     @app.route("/api/state")
     def get_state():
@@ -277,11 +284,21 @@ def _persist_state() -> None:
 
 
 def _ddc_updated() -> None:
-    state.bump()
+    with state_lock:
+        state.bump()
     try:
         socketio.emit("ddc.updated", {"values": state.ddc.values, "meta": state.meta})
     except Exception:
         pass
+
+
+def _sanitize_images(images: list[dict]) -> list[dict]:
+    sanitized = []
+    for image in images:
+        copy = dict(image)
+        copy.pop("storage_path", None)
+        sanitized.append(copy)
+    return sanitized
 
 
 if __name__ == "__main__":

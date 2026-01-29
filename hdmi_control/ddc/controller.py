@@ -17,10 +17,11 @@ class DdcCommandResult:
 
 
 class DdcController:
-    def __init__(self, state: DdcState, on_update: Callable[[], None]):
+    def __init__(self, state: DdcState, on_update: Callable[[], None], lock: threading.Lock | None = None):
         self.state = state
         self.on_update = on_update
         self.ddcutil = DdcUtil()
+        self._state_lock = lock
         self._lock = threading.Lock()
         self._pending: dict[str, int] = {}
         self._wake = threading.Condition(self._lock)
@@ -52,7 +53,7 @@ class DdcController:
                 self._set_error("No displays detected")
                 return
             display = displays[0]
-            self.state.display = display
+            self._with_state_lock(lambda: setattr(self.state, "display", display))
             self._select_target(display)
             bright = None
             contrast = None
@@ -60,27 +61,29 @@ class DdcController:
             ms_c = 0
             try:
                 bright, ms_b = self.ddcutil.get_vcp("10", self._target_args)
-                self.state.supported["brightness"] = bright.cur is not None
+                self._with_state_lock(lambda: self._set_supported("brightness", bright.cur is not None))
             except DdcUtilError:
-                self.state.supported["brightness"] = False
+                self._with_state_lock(lambda: self._set_supported("brightness", False))
             try:
                 contrast, ms_c = self.ddcutil.get_vcp("12", self._target_args)
-                self.state.supported["contrast"] = contrast.cur is not None
+                self._with_state_lock(lambda: self._set_supported("contrast", contrast.cur is not None))
             except DdcUtilError:
-                self.state.supported["contrast"] = False
-            self.state.supported["vcp"] = [
-                "0x10" if bright and bright.cur is not None else None,
-                "0x12" if contrast and contrast.cur is not None else None,
-            ]
-            self.state.supported["vcp"] = [v for v in self.state.supported["vcp"] if v]
-            if bright:
-                self.state.values["brightness"] = {"cur": bright.cur, "max": bright.max}
-            if contrast:
-                self.state.values["contrast"] = {"cur": contrast.cur, "max": contrast.max}
-            self.state.status = "ok" if (self.state.supported["brightness"] or self.state.supported["contrast"]) else "degraded"
-            self.state.lastError = None if self.state.status == "ok" else "VCP codes unsupported"
-            self.state.lastOkAt = now_iso()
-            self.state.lastCommandMs = max(ms_b, ms_c, ms)
+                self._with_state_lock(lambda: self._set_supported("contrast", False))
+            def _apply_scan():
+                self.state.supported["vcp"] = [
+                    "0x10" if bright and bright.cur is not None else None,
+                    "0x12" if contrast and contrast.cur is not None else None,
+                ]
+                self.state.supported["vcp"] = [v for v in self.state.supported["vcp"] if v]
+                if bright:
+                    self.state.values["brightness"] = {"cur": bright.cur, "max": bright.max}
+                if contrast:
+                    self.state.values["contrast"] = {"cur": contrast.cur, "max": contrast.max}
+                self.state.status = "ok" if (self.state.supported["brightness"] or self.state.supported["contrast"]) else "degraded"
+                self.state.lastError = None if self.state.status == "ok" else "VCP codes unsupported"
+                self.state.lastOkAt = now_iso()
+                self.state.lastCommandMs = max(ms_b, ms_c, ms)
+            self._with_state_lock(_apply_scan)
             self.on_update()
         except DdcUtilError as exc:
             self._set_error(str(exc))
@@ -135,14 +138,16 @@ class DdcController:
         for _ in range(retries):
             try:
                 duration_ms = self.ddcutil.set_vcp(code, value, self._target_args)
-                if code == "10":
-                    self.state.values["brightness"]["cur"] = value
-                if code == "12":
-                    self.state.values["contrast"]["cur"] = value
-                self.state.lastOkAt = now_iso()
-                self.state.lastError = None
-                self.state.lastCommandMs = duration_ms
-                self.state.status = "ok"
+                def _apply_ok():
+                    if code == "10":
+                        self.state.values["brightness"]["cur"] = value
+                    if code == "12":
+                        self.state.values["contrast"]["cur"] = value
+                    self.state.lastOkAt = now_iso()
+                    self.state.lastError = None
+                    self.state.lastCommandMs = duration_ms
+                    self.state.status = "ok"
+                self._with_state_lock(_apply_ok)
                 self.on_update()
                 return DdcCommandResult(True, None, duration_ms)
             except DdcUtilError as exc:
@@ -152,6 +157,18 @@ class DdcController:
         return DdcCommandResult(False, last_error, duration_ms)
 
     def _set_error(self, message: str) -> None:
-        self.state.status = "degraded" if self.state.display else "unavailable"
-        self.state.lastError = message
+        def _apply_error():
+            self.state.status = "degraded" if self.state.display else "unavailable"
+            self.state.lastError = message
+        self._with_state_lock(_apply_error)
         self.on_update()
+
+    def _with_state_lock(self, fn: Callable[[], None]) -> None:
+        if self._state_lock:
+            with self._state_lock:
+                fn()
+        else:
+            fn()
+
+    def _set_supported(self, key: str, value: bool) -> None:
+        self.state.supported[key] = value
